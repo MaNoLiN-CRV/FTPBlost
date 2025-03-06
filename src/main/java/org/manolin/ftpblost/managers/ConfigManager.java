@@ -8,6 +8,7 @@ public class ConfigManager {
     public static final String FTP_USER = "usuario_ftp";   
     public static final String FTP_PASSWORD = "password_ftp"; 
     public static final String FTP_REMOTE_BASE_DIRECTORY = "/"; 
-    public static final String AES_ENCRYPTION_KEY = "ftpbl0st"; 
+    public static final String AES_ENCRYPTION_KEY = "ftpbl0st";
+    public static final int THREAD_POOL_SIZE = 2; // <-- Number of threads for file monitoring event processing
 
     }
