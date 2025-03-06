@@ -1,3 +1,4 @@
+package org.manolin.ftpblost.managers;
 
 public class ConfigManager {
 
