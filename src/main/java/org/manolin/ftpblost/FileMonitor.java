@@ -45,7 +45,10 @@ public class FileMonitor {
                 return FileVisitResult.CONTINUE;
             }
         });
+        processEvents(watchService);
+    }
 
+    private void processEvents(WatchService watchService) throws InterruptedException, IOException {
         AtomicBoolean poll = new AtomicBoolean(true);
         while (poll.get()) {
             WatchKey key = watchService.take();
