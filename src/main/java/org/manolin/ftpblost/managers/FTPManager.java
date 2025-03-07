@@ -6,9 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.util.logging.LogManager;
-
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.manolin.ftpblost.exceptions.FTPException;
@@ -75,18 +72,26 @@ public class FTPManager {
     public void uploadFile(File localFile, String remotePath) throws FTPException {
         try (InputStream inputStream = new FileInputStream(localFile)) {
             LogsManager.logInfo("Uploading file to: " + remotePath);
-            // Asegurar que el directorio existe
-            String remoteDir = remotePath.substring(0, remotePath.lastIndexOf('/'));
-            if (!remoteDir.isEmpty()) {
-                makeDirectoryTree(remoteDir);
+            String normalizedPath = remotePath.replace('\\', '/');
+            int lastSlashIndex = normalizedPath.lastIndexOf('/');
+            
+            if (lastSlashIndex > 0) { 
+                String remoteDir = normalizedPath.substring(0, lastSlashIndex);
+                if (!remoteDir.isEmpty()) {
+                    makeDirectoryTree(remoteDir);
+                }
             }
             
-            boolean done = ftpClient.storeFile(remotePath, inputStream);
+            boolean done = ftpClient.storeFile(normalizedPath, inputStream);
             if (!done) {
-                LogsManager.logError("Upload failed. Server reply: " + ftpClient.getReplyString(), null);
-                throw new FTPException("The file could not be uploaded. " + ftpClient.getReplyString());
+                String serverReply = ftpClient.getReplyString();
+                LogsManager.logError("Upload failed. Server reply: " + serverReply, null);
+                throw new FTPException("The file could not be uploaded. " + serverReply);
             }
+            
+            LogsManager.logInfo("File uploaded successfully: " + normalizedPath);
         } catch (IOException e) {
+            LogsManager.logError("Error uploading file: " + e.getMessage(), e);
             throw new FTPException("Error uploading file: " + e.getMessage(), e);
         }
     }
@@ -156,18 +161,27 @@ public class FTPManager {
     }
 
     private void makeDirectoryTree(String dirPath) throws IOException {
+        if (dirPath.startsWith("/")) {
+            dirPath = dirPath.substring(1);
+        }
+        
         String[] dirs = dirPath.split("/");
         String currentDir = "";
+        
         for (String dir : dirs) {
             if (!dir.isEmpty()) {
                 currentDir = currentDir + "/" + dir;
                 boolean exists = ftpClient.changeWorkingDirectory(currentDir);
                 if (!exists) {
                     LogsManager.logInfo("Creating directory: " + currentDir);
-                    ftpClient.makeDirectory(currentDir);
+                    if (!ftpClient.makeDirectory(currentDir)) {
+                        LogsManager.logWarn("Could not create directory: " + currentDir + ". Reply: " + ftpClient.getReplyString());
+                    }
                 }
             }
         }
+        
+        // Return to root directory
         ftpClient.changeWorkingDirectory("/");
     }
 }
