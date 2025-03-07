@@ -5,7 +5,7 @@ package org.manolin.ftpblost.managers;
 public class ConfigManager {
 
     public static final String LOCAL_DIRECTORY_TO_WATCH = "/home/manel/ftprueba";
-    public static final String FTP_SERVER = "192.168.1.34";
+    public static final String FTP_SERVER = "localhost";
     public static final int FTP_PORT = 21; // FTP DEFAULT PORT
     public static final String FTP_USER = "ftp";
     public static final String FTP_PASSWORD = "";
