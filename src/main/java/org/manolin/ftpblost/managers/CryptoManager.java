@@ -16,7 +16,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.logs.LogsManager;
+import org.manolin.ftpblost.logs.LogsManager;
 
 public class CryptoManager {
 

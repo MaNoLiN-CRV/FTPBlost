@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Scanner;
 
-import org.logs.LogsManager;
 import org.manolin.ftpblost.FileMonitor;
 import org.manolin.ftpblost.exceptions.FTPException;
+import org.manolin.ftpblost.logs.LogsManager;
 import org.manolin.ftpblost.managers.ConfigManager;
 import org.manolin.ftpblost.managers.CryptoManager;
 import org.manolin.ftpblost.managers.FTPManager;
@@ -92,6 +92,7 @@ public class BackupController {
             
             while (running) {
                 LogsManager.logInfo("\n--- FTPBlost Backup Manager Menu ---");
+                LogsManager.logInfo("0. Test connection to FTP server");
                 LogsManager.logInfo("1. Start Synchronization in Background");
                 LogsManager.logInfo("2. Download and Decrypt File from FTP Server");
                 LogsManager.logInfo("3. Exit");
@@ -99,6 +100,13 @@ public class BackupController {
                 String option = scanner.nextLine();
                 
                 switch (option) {
+                    case "0" -> {
+                        if (ftpManager.testFtpConnection()) {
+                            LogsManager.logInfo("FTP connection tested successfully.");
+                        } else {
+                            LogsManager.logWarn("Failed to connect to the FTP server.");
+                        }
+                    }
                     case "1" -> {
                         runBackupProcess();
                         LogsManager.logInfo("Synchronization started in background.");

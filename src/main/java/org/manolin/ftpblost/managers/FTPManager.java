@@ -9,8 +9,8 @@ import java.io.OutputStream;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
-import org.logs.LogsManager;
 import org.manolin.ftpblost.exceptions.FTPException;
+import org.manolin.ftpblost.logs.LogsManager;
 
 public class FTPManager {
 
@@ -123,6 +123,15 @@ public class FTPManager {
             return ftpClient.listNames(remotePath);
         } catch (IOException e) {
             throw new FTPException("Error listing files on the FTP server: " + e.getMessage(), e);
+        }
+    }
+    public boolean testFtpConnection() {
+        try {
+            connect();
+            disconnect();
+            return true;
+        } catch (FTPException e) {
+            return false;
         }
     }
 }

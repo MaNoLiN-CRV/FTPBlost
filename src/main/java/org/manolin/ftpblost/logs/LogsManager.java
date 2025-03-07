@@ -1,4 +1,4 @@
-package org.logs;
+package org.manolin.ftpblost.logs;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

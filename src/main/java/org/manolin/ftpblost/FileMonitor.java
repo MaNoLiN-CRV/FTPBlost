@@ -1,6 +1,7 @@
 package org.manolin.ftpblost;
 
 import org.manolin.ftpblost.exceptions.FTPException;
+import org.manolin.ftpblost.logs.LogsManager;
 import org.manolin.ftpblost.managers.ConfigManager;
 import org.manolin.ftpblost.managers.CryptoManager;
 import org.manolin.ftpblost.managers.FTPManager;
@@ -13,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.logs.LogsManager;
 
 public class FileMonitor {
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+    <Properties>
+        <Property name="colorPattern">%highlight{%d{HH:mm:ss} %-5level}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=white} %msg%n</Property>
+        <Property name="filePattern">%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n</Property>
+    </Properties>
+    
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${colorPattern}" disableAnsi="false"/>
+        </Console>
+        <File name="File" fileName="logs/ftpblost.log">
+            <PatternLayout pattern="${filePattern}"/>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+</Configuration>
