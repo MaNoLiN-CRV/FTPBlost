@@ -66,18 +66,24 @@ public class BackupController {
             LogsManager.logInfo("Enter the local path to save the decrypted file (e.g. descargado_descifrado.txt): ");
             String localFilePath = scanner.nextLine();
             File localFileDownload = new File(localFilePath);
+            File tempFile = null;
 
             try {
                 ftpManager.connect();
-                ftpManager.downloadFile(remoteFileToDownload, localFileDownload);
-                String cipherTextBase64 = Files.readString(localFileDownload.toPath());
+                tempFile = File.createTempFile("encrypted_", ".tmp");
+                ftpManager.downloadFile(remoteFileToDownload, tempFile);                
+                String cipherTextBase64 = Files.readString(tempFile.toPath());
                 String decryptedText = CryptoManager.decryptText(cipherTextBase64, ConfigManager.AES_ENCRYPTION_KEY);
+                Files.writeString(localFileDownload.toPath(), decryptedText);
                 LogsManager.logInfo("Decrypted content of the file " + remoteFileToDownload + " saved in " + localFileDownload.getAbsolutePath());
                 LogsManager.logDebug("Decrypted content:\n" + decryptedText);
             } catch (Exception e) {
                 LogsManager.logError("Error downloading and decrypting file: " + e.getMessage(), e);
             } finally {
                 try {
+                    if (tempFile != null && tempFile.exists()) {
+                        tempFile.delete();
+                    }
                     ftpManager.disconnect();
                 } catch (FTPException e) {
                     LogsManager.logError("Error disconnecting from FTP after download: " + e.getMessage(), e);
@@ -87,16 +93,18 @@ public class BackupController {
     }
 
     public void showMenu() {
-        try (Scanner scanner = new Scanner(System.in)) {
-            boolean running = true;
+        Scanner scanner = new Scanner(System.in);  // Remove try-with-resources
+        boolean running = true;
+        
+        while (running) {
+            LogsManager.logInfo("\n--- FTPBlost Backup Manager Menu ---");
+            LogsManager.logInfo("0. Test connection to FTP server");
+            LogsManager.logInfo("1. Start Synchronization in Background");
+            LogsManager.logInfo("2. Download and Decrypt File from FTP Server");
+            LogsManager.logInfo("3. Exit");
+            LogsManager.logInfo("Select an option: ");
             
-            while (running) {
-                System.out.println("\n--- FTPBlost Backup Manager Menu ---");
-                System.out.println("0. Test connection to FTP server");
-                System.out.println("1. Start Synchronization in Background");
-                System.out.println("2. Download and Decrypt File from FTP Server");
-                System.out.println("3. Exit");
-                System.out.print("Select an option: ");
+            if (scanner.hasNextLine()) {  // Add check for available input
                 String option = scanner.nextLine();
                 
                 switch (option) {
@@ -132,7 +140,11 @@ public class BackupController {
                     }
                     default -> LogsManager.logWarn("Invalid option. Please select an option from the menu.");
                 }
+            } else {
+                running = false;
+                LogsManager.logWarn("Input stream closed. Exiting...");
             }
         }
+        scanner.close();  // Close scanner at the end
     }
 }
