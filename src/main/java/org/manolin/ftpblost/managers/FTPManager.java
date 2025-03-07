@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.util.logging.LogManager;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
@@ -131,6 +133,7 @@ public class FTPManager {
             disconnect();
             return true;
         } catch (FTPException e) {
+            LogsManager.logError("FTP connection test failed: " + e.getMessage(), e);
             return false;
         }
     }
