@@ -114,6 +114,9 @@ public class FileMonitor {
         boolean isTextFile = isTextFile(localFilePath);
         try {
             String remoteFullPath = remoteFilePath.replace("\\", "/");
+            if (remoteFullPath.startsWith("/")) {
+                remoteFullPath = remoteFullPath.substring(1);  // Eliminar slash inicial
+            }
             if (isTextFile) {
                 String plainText = Files.readString(localFilePath);
                 encryptedText = CryptoManager.encryptText(plainText, ConfigManager.AES_ENCRYPTION_KEY);
