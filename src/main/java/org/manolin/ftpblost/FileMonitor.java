@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.logs.LogsManager;
 
 public class FileMonitor {
 
@@ -35,7 +36,7 @@ public class FileMonitor {
                 StandardWatchEventKinds.ENTRY_CREATE,
                 StandardWatchEventKinds.ENTRY_MODIFY,
                 StandardWatchEventKinds.ENTRY_DELETE);
-        System.out.println("Monitoring local directory: " + directoryToWatch);
+        LogsManager.logInfo("Monitoring local directory: " + directoryToWatch);
         Files.walkFileTree(directoryToWatch, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -65,7 +66,7 @@ public class FileMonitor {
                             Path child = directoryToWatch.resolve(filename);
 
                             if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                                System.out.println("File created: " + filename);
+                                LogsManager.logInfo("File created: " + filename);
                                 syncFileToFTP(child, remoteBasePath + "/" + filename);
 
                             } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
@@ -74,22 +75,21 @@ public class FileMonitor {
                                 if (!lastModifiedTimes.containsKey(child.toAbsolutePath()) ||
                                         lastModifiedTimes.get(child.toAbsolutePath()) < currentLastModified) {
 
-                                    System.out.println("File modified: " + filename);
+                                    LogsManager.logInfo("File modified: " + filename);
                                     syncFileToFTP(child, remoteBasePath + "/" + filename);
                                     lastModifiedTimes.put(child.toAbsolutePath(), currentLastModified);
 
                                 }
 
                             } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                                System.out.println("File deleted: " + filename);
+                                LogsManager.logInfo("File deleted: " + filename);
                                 deleteFileFromFTP(remoteBasePath + "/" + filename);
                                 lastModifiedTimes.remove(child.toAbsolutePath());
                             }
                         }
                         poll.set(key.reset());
                     } catch (IOException e) {
-                        System.out.println("Error at FileMonitor: " + e.getMessage());
-                        e.printStackTrace();
+                        LogsManager.logError("Error at FileMonitor: " + e.getMessage(), e);
                     }
 
                 });
@@ -105,7 +105,7 @@ public class FileMonitor {
     private void syncFileToFTP(Path localFilePath, String remoteFilePath) {
         File localFile = localFilePath.toFile();
         if (!localFile.isFile()) {
-            System.out.println("Ignoring non-file: " + localFilePath);
+            LogsManager.logWarn("Ignoring non-file: " + localFilePath);
             return;
         }
         String encryptedText = null;
@@ -119,14 +119,13 @@ public class FileMonitor {
                 Files.writeString(tempEncryptedFile.toPath(), encryptedText);
                 ftpManager.uploadFile(tempEncryptedFile, remoteFullPath + ".encrypted");
                 tempEncryptedFile.delete();
-                System.out.println("Text file encrypted and synchronized: " + localFilePath + " -> " + remoteFullPath + ".encrypted");
+                LogsManager.logInfo("Text file encrypted and synchronized: " + localFilePath + " -> " + remoteFullPath + ".encrypted");
             } else {
                 ftpManager.uploadFile(localFile, remoteFullPath);
-                System.out.println("Binary file synchronized: " + localFilePath + " -> " + remoteFullPath);
+                LogsManager.logInfo("Binary file synchronized: " + localFilePath + " -> " + remoteFullPath);
             }
         } catch (Exception e) {
-            System.err.println("Error synchronizing file " + localFilePath + " with FTP: " + e.getMessage());
-            e.printStackTrace();
+            LogsManager.logError("Error synchronizing file " + localFilePath + " with FTP: " + e.getMessage(), e);
         }
     }
     
@@ -136,8 +135,7 @@ public class FileMonitor {
             ftpManager.deleteFile(remoteFullPath);
             ftpManager.deleteFile(remoteFullPath + ".encrypted");
         } catch (Exception e) {
-            System.err.println("Error deleting file " + remoteFilePath + " from FTP: " + e.getMessage());
-            e.printStackTrace();
+            LogsManager.logError("Error deleting file " + remoteFilePath + " from FTP: " + e.getMessage(), e);
         }
     }
 
