@@ -111,7 +111,13 @@ public class BackupController {
                         runBackupProcess();
                         LogsManager.logInfo("Synchronization started in background.");
                     }
-                    case "2" -> downloadAndDecryptFile();
+                    case "2" -> { 
+                        try {
+                            downloadAndDecryptFile();
+                        } catch (Exception e) {
+                            LogsManager.logError("Error downloading and decrypting file: " + e.getMessage(), e);
+                        }
+                    }
                     case "3" -> {
                         running = false;
                         LogsManager.logInfo("Exiting FTP Backup Manager.");
