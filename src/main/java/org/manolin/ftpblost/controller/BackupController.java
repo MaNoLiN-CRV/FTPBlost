@@ -91,12 +91,12 @@ public class BackupController {
             boolean running = true;
             
             while (running) {
-                LogsManager.logInfo("\n--- FTPBlost Backup Manager Menu ---");
-                LogsManager.logInfo("0. Test connection to FTP server");
-                LogsManager.logInfo("1. Start Synchronization in Background");
-                LogsManager.logInfo("2. Download and Decrypt File from FTP Server");
-                LogsManager.logInfo("3. Exit");
-                LogsManager.logInfo("Select an option: ");
+                System.out.println("\n--- FTPBlost Backup Manager Menu ---");
+                System.out.println("0. Test connection to FTP server");
+                System.out.println("1. Start Synchronization in Background");
+                System.out.println("2. Download and Decrypt File from FTP Server");
+                System.out.println("3. Exit");
+                System.out.print("Select an option: ");
                 String option = scanner.nextLine();
                 
                 switch (option) {
