@@ -1,5 +1,6 @@
-package org.manolin.ftpblost;
+package org.manolin.ftpblost.controller;
 
+import org.manolin.ftpblost.FileMonitor;
 import org.manolin.ftpblost.exceptions.FTPException;
 import org.manolin.ftpblost.managers.ConfigManager;
 import org.manolin.ftpblost.managers.CryptoManager;
@@ -111,6 +112,13 @@ public class BackupController {
                 case "3":
                     running = false;
                     System.out.println("Exiting FTP Backup Manager.");
+                    try {
+                        ftpManager.disconnect();
+                        System.out.println("Disconnected from the FTP server.");
+                        System.exit(0);
+                    } catch (FTPException e) {
+                        throw new RuntimeException(e);
+                    }
                     break;
                 default:
                     System.out.println("Invalid option. Please select an option from the menu.");
