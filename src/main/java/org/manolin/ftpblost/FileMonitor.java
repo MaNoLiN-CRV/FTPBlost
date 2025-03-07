@@ -50,56 +50,58 @@ public class FileMonitor {
     }
 
     private void processEvents(WatchService watchService) throws InterruptedException, IOException {
-        AtomicBoolean poll = new AtomicBoolean(true);
-        while (poll.get()) {
-            WatchKey key = watchService.take();
-            if (key != null) {
-                executorService.submit(() -> {
-                    try {
-                        for (WatchEvent<?> event : key.pollEvents()) {
-                            WatchEvent.Kind<?> kind = event.kind();
-                            if (kind == StandardWatchEventKinds.OVERFLOW) {
-                                continue;
-                            }
-                            WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                            Path filename = ev.context();
-                            Path child = directoryToWatch.resolve(filename);
-
-                            if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                                LogsManager.logInfo("File created: " + filename);
-                                syncFileToFTP(child, remoteBasePath + "/" + filename);
-
-                            } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                long currentLastModified = Files.getLastModifiedTime(child).toMillis();
-
-                                if (!lastModifiedTimes.containsKey(child.toAbsolutePath()) ||
-                                        lastModifiedTimes.get(child.toAbsolutePath()) < currentLastModified) {
-
-                                    LogsManager.logInfo("File modified: " + filename);
-                                    syncFileToFTP(child, remoteBasePath + "/" + filename);
-                                    lastModifiedTimes.put(child.toAbsolutePath(), currentLastModified);
-
+        try (watchService) {
+            AtomicBoolean poll = new AtomicBoolean(true);
+            while (poll.get()) {
+                WatchKey key = watchService.take();
+                if (key != null) {
+                    executorService.submit(() -> {
+                        try {
+                            for (WatchEvent<?> event : key.pollEvents()) {
+                                WatchEvent.Kind<?> kind = event.kind();
+                                if (kind == StandardWatchEventKinds.OVERFLOW) {
+                                    continue;
                                 }
-
-                            } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                                LogsManager.logInfo("File deleted: " + filename);
-                                deleteFileFromFTP(remoteBasePath + "/" + filename);
-                                lastModifiedTimes.remove(child.toAbsolutePath());
+                                @SuppressWarnings("unchecked")
+                                WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                                Path filename = ev.context();
+                                Path child = directoryToWatch.resolve(filename);
+                                
+                                if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                                    LogsManager.logInfo("File created: " + filename);
+                                    syncFileToFTP(child, remoteBasePath + "/" + filename);
+                                    
+                                } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                    long currentLastModified = Files.getLastModifiedTime(child).toMillis();
+                                    
+                                    if (!lastModifiedTimes.containsKey(child.toAbsolutePath()) ||
+                                            lastModifiedTimes.get(child.toAbsolutePath()) < currentLastModified) {
+                                        
+                                        LogsManager.logInfo("File modified: " + filename);
+                                        syncFileToFTP(child, remoteBasePath + "/" + filename);
+                                        lastModifiedTimes.put(child.toAbsolutePath(), currentLastModified);
+                                        
+                                    }
+                                    
+                                } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                                    LogsManager.logInfo("File deleted: " + filename);
+                                    deleteFileFromFTP(remoteBasePath + "/" + filename);
+                                    lastModifiedTimes.remove(child.toAbsolutePath());
+                                }
                             }
+                            poll.set(key.reset());
+                        } catch (IOException e) {
+                            LogsManager.logError("Error at FileMonitor: " + e.getMessage(), e);
                         }
-                        poll.set(key.reset());
-                    } catch (IOException e) {
-                        LogsManager.logError("Error at FileMonitor: " + e.getMessage(), e);
-                    }
-
-                });
-
-
-            } else {
-                poll.set(false);
+                        
+                    });
+                    
+                    
+                } else {
+                    poll.set(false);
+                }
             }
         }
-        watchService.close();
     }
 
     private void syncFileToFTP(Path localFilePath, String remoteFilePath) {
@@ -108,7 +110,7 @@ public class FileMonitor {
             LogsManager.logWarn("Ignoring non-file: " + localFilePath);
             return;
         }
-        String encryptedText = null;
+        String encryptedText;
         boolean isTextFile = isTextFile(localFilePath);
         try {
             String remoteFullPath = remoteFilePath.replace("\\", "/");
@@ -134,7 +136,7 @@ public class FileMonitor {
             String remoteFullPath = remoteFilePath.replace("\\", "/");
             ftpManager.deleteFile(remoteFullPath);
             ftpManager.deleteFile(remoteFullPath + ".encrypted");
-        } catch (Exception e) {
+        } catch (FTPException e) {
             LogsManager.logError("Error deleting file " + remoteFilePath + " from FTP: " + e.getMessage(), e);
         }
     }

@@ -1,10 +1,16 @@
 package org.manolin.ftpblost.managers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
+import org.logs.LogsManager;
 import org.manolin.ftpblost.exceptions.FTPException;
-
-import java.io.*;
 
 public class FTPManager {
 
@@ -36,7 +42,7 @@ public class FTPManager {
                 throw new FTPException("Could not log in to the FTP server.");
             }
             ftpClient.enterLocalPassiveMode(); // <-- Passive mode
-            System.out.println("Connected to the FTP server: " + server);
+            LogsManager.logInfo("Connected to the FTP server: " + server);
         } catch (IOException e) {
             throw new FTPException("Error connecting to the FTP server: " + e.getMessage(), e);
         }
@@ -47,7 +53,7 @@ public class FTPManager {
             try {
                 ftpClient.logout();
                 ftpClient.disconnect();
-                System.out.println("Disconnected from the FTP server.");
+                LogsManager.logInfo("Disconnected from the FTP server.");
             } catch (IOException e) {
                 throw new FTPException("Error disconnecting from the FTP server: " + e.getMessage(), e);
             }
@@ -56,7 +62,7 @@ public class FTPManager {
 
     public void uploadFile(File localFile, String remotePath) throws FTPException {
         try (InputStream inputStream = new FileInputStream(localFile)) {
-            System.out.println("Uploading file: " + localFile.getAbsolutePath() + " to " + remotePath);
+            LogsManager.logInfo("Uploading file: " + localFile.getAbsolutePath() + " to " + remotePath);
             boolean done = ftpClient.storeFile(remotePath, inputStream);
             if (!done) {
                 throw new FTPException("The file could not be uploaded to the FTP server.");
@@ -68,7 +74,7 @@ public class FTPManager {
 
     public void downloadFile(String remotePath, File localFile) throws FTPException {
         try (OutputStream outputStream = new FileOutputStream(localFile)) {
-            System.out.println("Downloading file: " + remotePath + " to " + localFile.getAbsolutePath());
+            LogsManager.logInfo("Downloading file: " + remotePath + " to " + localFile.getAbsolutePath());
             boolean done = ftpClient.retrieveFile(remotePath, outputStream);
             if (!done) {
                 throw new FTPException("The file could not be downloaded from the FTP server.");
@@ -82,9 +88,9 @@ public class FTPManager {
         try {
             boolean deleted = ftpClient.deleteFile(remotePath);
             if (deleted) {
-                System.out.println("File deleted from the FTP server: " + remotePath);
+                LogsManager.logInfo("File deleted from the FTP server: " + remotePath);
             } else {
-                System.out.println("Could not delete the file from the FTP server: " + remotePath + ". Did it exist?");
+                LogsManager.logWarn("Could not delete the file from the FTP server: " + remotePath + ". Did it exist?");
             }
         } catch (IOException e) {
             throw new FTPException("Error deleting the file " + remotePath + " from the FTP server: " + e.getMessage(), e);
@@ -103,9 +109,9 @@ public class FTPManager {
         try {
             boolean created = ftpClient.makeDirectory(remotePath);
             if (created) {
-                System.out.println("Directory created on the FTP server: " + remotePath);
+                LogsManager.logInfo("Directory created on the FTP server: " + remotePath);
             } else {
-                System.out.println("Could not create the directory on the FTP server (it might already exist): " + remotePath);
+                LogsManager.logWarn("Could not create the directory on the FTP server (it might already exist): " + remotePath);
             }
         } catch (IOException e) {
             throw new FTPException("Error creating the directory " + remotePath + " on the FTP server: " + e.getMessage(), e);
