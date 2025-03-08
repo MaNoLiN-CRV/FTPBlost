@@ -7,5 +7,6 @@ FTPBlost es una herramienta desarrollada en Java para la transferencia y gestió
 - **Transferencia rápida de archivos**: Optimizada para transferencias rápidas y seguras.
 - **Gestión intuitiva**: Interfaz de usuario amigable que facilita la gestión de archivos y directorios.
 - **Seguridad**: Implementa medidas de seguridad para proteger tus datos durante la transferencia.
+- **Monitorizacion**: Sincroniza tus archivos en tiempo real.
 
 Tremendo video tutorial: https://youtu.be/vVSZMIlQTHI?si=HAx2z7vk4L5VIeb7
